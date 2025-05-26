@@ -11,33 +11,31 @@
 #include "token.hxx"
 #include "gl.hxx"
 
-using namespace lexer;
-
-static std::unordered_map<std::string_view, token::type_t> g_ops = {
-    {"+", token::type_t::plus},
-    {"-", token::type_t::minus},
-    {"*", token::type_t::asterisk},
-    {"/", token::type_t::forward_slash},
-    {">", token::type_t::greater_than},
-    {"<", token::type_t::less_than},
-    {"=", token::type_t::equals},
-    {"%", token::type_t::percent},
-    {".", token::type_t::period},
-    {"(", token::type_t::lparen},
-    {")", token::type_t::rparen},
-    {"[", token::type_t::lsqr_bracket},
-    {"]", token::type_t::rsqr_bracket},
-    {"{", token::type_t::lcurly_bracket},
-    {"}", token::type_t::rcurly_bracket},
-    {"$", token::type_t::dollar},
-    {";", token::type_t::semicolon},
-    {",", token::type_t::comma},
-    {">=", token::type_t::greater_than_equals},
-    {"<=", token::type_t::less_than_equals},
-    {"==", token::type_t::double_equals},
-    {"%=", token::type_t::percent_equals},
-    {"||", token::type_t::double_pipe},
-    {"&&", token::type_t::double_ampersand},
+static std::unordered_map<std::string_view, token_type_t> g_ops = {
+    {"+", TT_PLUS},
+    {"-", TT_MINUS},
+    {"*", TT_ASTERISK},
+    {"/", TT_FORWARD_SLASH},
+    {">", TT_GREATER_THAN},
+    {"<", TT_LESS_THAN},
+    {"=", TT_EQUALS},
+    {"%", TT_PERCENT},
+    {".", TT_PERIOD},
+    {"(", TT_LPAREN},
+    {")", TT_RPAREN},
+    {"[", TT_LSQR_BRACKET},
+    {"]", TT_RSQR_BRACKET},
+    {"{", TT_LCURLY_BRACKET},
+    {"}", TT_RCURLY_BRACKET},
+    {"$", TT_DOLLAR},
+    {";", TT_SEMICOLON},
+    {",", TT_COMMA},
+    {">=", TT_GREATER_THAN_EQUALS},
+    {"<=", TT_LESS_THAN_EQUALS},
+    {"==", TT_DOUBLE_EQUALS},
+    {"%=", TT_PERCENT_EQUALS},
+    {"||", TT_DOUBLE_PIPE},
+    {"&&", TT_DOUBLE_AMPERSAND},
 };
 
 constexpr size_t get_max_operator_length() {
@@ -53,7 +51,7 @@ constexpr size_t get_max_operator_length() {
     return max_len;
 }
 
-static void append(lexer_t *l, token::token_t *t) {
+static void append(lexer_t *l, token_t *t) {
     if (!l->hd) {
         l->hd = t;
         l->tl = l->hd;
@@ -63,16 +61,16 @@ static void append(lexer_t *l, token::token_t *t) {
     }
 }
 
-void lexer::dump(lexer_t *l) {
+void lexer_dump(lexer_t *l) {
     auto t = l->hd;
     while (t) {
         printf("Token: {\n");
-        if (t->ty == token::type_t::newline) {
+        if (t->ty == token_type_t::TT_NEWLINE) {
             printf("  lx: \\n\n");
         } else {
             printf("  lx: %.*s\n", (int)t->lx.l, t->lx.st);
         }
-        printf("  ty: %s\n", token::type_to_cstr(t->ty));
+        printf("  ty: %s\n", token_type_to_cstr(t->ty));
         printf("  r: %d\n", (int)t->r);
         printf("  c: %d\n", (int)t->c);
         printf("}\n");
@@ -80,9 +78,9 @@ void lexer::dump(lexer_t *l) {
     }
 }
 
-token::token_t *lexer::peek(const lexer_t *l, int p) {
+token_t *lexer_peek(const lexer_t *l, int p) {
     int i = 0;
-    token::token_t *it = l->hd;
+    token_t *it = l->hd;
     while (it && i < p) {
         ++i;
         it = it->n;
@@ -90,13 +88,13 @@ token::token_t *lexer::peek(const lexer_t *l, int p) {
     return it;
 }
 
-token::token_t *lexer::next(lexer_t *l) {
-    token::token_t *it = l->hd;
+token_t *lexer_next(lexer_t *l) {
+    token_t *it = l->hd;
     l->hd = l->hd->n;
     return it;
 }
 
-void lexer::discard(lexer_t *l) {
+void lexer_discard(lexer_t *l) {
     l->hd = l->hd->n;
 }
 
@@ -124,7 +122,7 @@ static bool isop(char c) {
                 && c != '\r';
 }
 
-static std::pair<token::type_t, size_t> determine_type_from_op(
+static std::pair<token_type_t, size_t> determine_type_from_op(
     const char *src,
     size_t max_len)
 {
@@ -137,7 +135,7 @@ static std::pair<token::type_t, size_t> determine_type_from_op(
             return {it->second, len};
         }
     }
-    return {token::type_t::unknown, 0};
+    return {TT_UNKNOWN, 0};
 }
 
 static size_t consume_until(
@@ -155,7 +153,7 @@ static size_t consume_until(
     return i;
 }
 
-lexer_t lexer::lex(const char *fp, char *src) {
+lexer_t lexer_analyze(const char *fp, char *src) {
     lexer_t lx = (lexer_t) {
         .hd = nullptr,
         .tl = nullptr,
@@ -163,24 +161,24 @@ lexer_t lexer::lex(const char *fp, char *src) {
 
     int i = 0, r = 1, c = 1;
     while (src[i]) {
-        token::token_t *t = nullptr;
+        token_t *t = nullptr;
         char ch = src[i];
 
         if (ch == ' ' || ch == '\t') {
             ++i, ++c;
         } else if (ch == '\n') {
-            append(&lx, token::create(src+i, 1, token::type_t::newline, r, c));
+            append(&lx, token_create(src+i, 1, TT_NEWLINE, r, c));
             ++i, ++r, c = 1;
         } else if (isalpha(ch) || ch == '_') {
             size_t l = consume_until(src+i, [](char c) { return !isalnum(c) && c != '_'; });
-            append(&lx, token::create(src+i, l, iskw(src+i, l)
-                                      ? token::type_t::keyword
-                                      : token::type_t::identifier,
+            append(&lx, token_create(src+i, l, iskw(src+i, l)
+                                      ? TT_KEYWORD
+                                      : TT_IDENTIFIER,
                                       r, c));
             i += l, c += l;
         } else if (isdigit(ch)) {
             size_t l = consume_until(src+i, [](char c) { return !isdigit(c); });
-            append(&lx, token::create(src+i, l, token::type_t::intlit, r, c));
+            append(&lx, token_create(src+i, l, TT_INTLIT, r, c));
             i += l, c += l;
         } else if (ch == '"' || ch == '\'') {
             size_t l = consume_until(src+i+1, [=](char c) {
@@ -188,7 +186,7 @@ lexer_t lexer::lex(const char *fp, char *src) {
                     ? c == '"'
                     : c == '\'';
             });
-            append(&lx, token::create(src+i+1, l, token::type_t::strlit, r, c));
+            append(&lx, token_create(src+i+1, l, TT_STRLIT, r, c));
             i += l+2, c += l+2;
         } else {
             size_t len = consume_until(src+i, [](char c) { return !isop(c); });
@@ -197,10 +195,12 @@ lexer_t lexer::lex(const char *fp, char *src) {
                 fprintf(stderr, "Invalid operator at row %d, col %d: %.*s\n", r, c, (int)len, src+i);
                 exit(1);
             }
-            append(&lx, token::create(src+i, sz, ty, r, c));
+            append(&lx, token_create(src+i, sz, ty, r, c));
             i += sz, c += sz;
         }
     }
+
+    append(&lx, token_create(src+i, 0, TT_EOF, r, c));
 
     return lx;
 }

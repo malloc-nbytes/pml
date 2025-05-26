@@ -2,11 +2,9 @@
 
 #include "token.hxx"
 
-using namespace token;
-
-token_t *token::create(char *st, size_t l,
-                       type_t ty, size_t r,
-                       size_t c) {
+token_t *token_create(char *st, size_t l,
+                      token_type_t ty, size_t r,
+                      size_t c) {
     auto t = new token_t;
     t->n = nullptr;
     t->lx.st = st;
@@ -17,39 +15,39 @@ token_t *token::create(char *st, size_t l,
     return t;
 }
 
-const char *token::type_to_cstr(type_t ty) {
+const char *token_type_to_cstr(token_type_t ty) {
     switch (ty) {
-    case type_t::unknown: return "unknown";
-    case type_t::eof: return "eof";
-    case type_t::newline: return "newline";
-    case type_t::strlit: return "strlit";
-    case type_t::intlit: return "intlit";
-    case type_t::keyword: return "keyword";
-    case type_t::identifier: return "identifier";
-    case type_t::lsqr_bracket: return "lsqr_bracket";
-    case type_t::rsqr_bracket: return "rsqr_bracket";
-    case type_t::lcurly_bracket: return "lcurly_bracket";
-    case type_t::rcurly_bracket: return "rcurly_bracket";
-    case type_t::lparen: return "lparen";
-    case type_t::rparen: return "rparen";
-    case type_t::dollar: return "dollar";
-    case type_t::semicolon: return "semicolon";
-    case type_t::comma: return "comma";
-    case type_t::plus: return "plus";
-    case type_t::minus: return "minus";
-    case type_t::asterisk: return "asterisk";
-    case type_t::forward_slash: return "forward_slash";
-    case type_t::greater_than: return "greater_than";
-    case type_t::less_than: return "less_than";
-    case type_t::equals: return "equals";
-    case type_t::percent: return "percent";
-    case type_t::period: return "period";
-    case type_t::greater_than_equals: return "greater_than_equals";
-    case type_t::less_than_equals: return "less_than_equals";
-    case type_t::double_equals: return "double_equals";
-    case type_t::percent_equals: return "percent_equals";
-    case type_t::double_pipe: return "double_pipe";
-    case type_t::double_ampersand: return "double_ampersand";
+    case TT_UNKNOWN: return "unknown";
+    case TT_EOF: return "eof";
+    case TT_NEWLINE: return "newline";
+    case TT_STRLIT: return "strlit";
+    case TT_INTLIT: return "intlit";
+    case TT_KEYWORD: return "keyword";
+    case TT_IDENTIFIER: return "identifier";
+    case TT_LSQR_BRACKET: return "lsqr_bracket";
+    case TT_RSQR_BRACKET: return "rsqr_bracket";
+    case TT_LCURLY_BRACKET: return "lcurly_bracket";
+    case TT_RCURLY_BRACKET: return "rcurly_bracket";
+    case TT_LPAREN: return "lparen";
+    case TT_RPAREN: return "rparen";
+    case TT_DOLLAR: return "dollar";
+    case TT_SEMICOLON: return "semicolon";
+    case TT_COMMA: return "comma";
+    case TT_PLUS: return "plus";
+    case TT_MINUS: return "minus";
+    case TT_ASTERISK: return "asterisk";
+    case TT_FORWARD_SLASH: return "forward_slash";
+    case TT_GREATER_THAN: return "greater_than";
+    case TT_LESS_THAN: return "less_than";
+    case TT_EQUALS: return "equals";
+    case TT_PERCENT: return "percent";
+    case TT_PERIOD: return "period";
+    case TT_GREATER_THAN_EQUALS: return "greater_than_equals";
+    case TT_LESS_THAN_EQUALS: return "less_than_equals";
+    case TT_DOUBLE_EQUALS: return "double_equals";
+    case TT_PERCENT_EQUALS: return "percent_equals";
+    case TT_DOUBLE_PIPE: return "double_pipe";
+    case TT_DOUBLE_AMPERSAND: return "double_ampersand";
     default: assert(0 && "unknown token");
     }
 }

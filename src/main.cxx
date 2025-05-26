@@ -15,9 +15,9 @@ int main(void) {
     size_t src_len = 0;
     char *src = cio_file_to_cstr_wnewlines(input_fp, &src_len);
 
-    auto l = lexer::lex(input_fp, src);
-    //lexer::dump(&l);
-    auto p = parser::parse(&l);
+    auto l = lexer_analyze(input_fp, src);
+    //lexer_dump(&l);
+    program_t p = parser_parse(&l);
 
     return 0;
 }

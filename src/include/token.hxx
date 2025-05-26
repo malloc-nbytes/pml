@@ -3,56 +3,54 @@
 
 #include <stddef.h>
 
-namespace token {
-    typedef enum {
-        unknown,
-        eof,
-        newline,
-        strlit,
-        intlit,
-        keyword,
-        identifier,
-        lsqr_bracket,
-        rsqr_bracket,
-        lcurly_bracket,
-        rcurly_bracket,
-        lparen,
-        rparen,
-        dollar,
-        semicolon,
-        comma,
-        plus,
-        minus,
-        asterisk,
-        forward_slash,
-        greater_than,
-        less_than,
-        equals,
-        percent,
-        period,
-        greater_than_equals,
-        less_than_equals,
-        double_equals,
-        percent_equals,
-        double_pipe,
-        double_ampersand,
-    } type_t;
+typedef enum {
+    TT_UNKNOWN,
+    TT_EOF,
+    TT_NEWLINE,
+    TT_STRLIT,
+    TT_INTLIT,
+    TT_KEYWORD,
+    TT_IDENTIFIER,
+    TT_LSQR_BRACKET,
+    TT_RSQR_BRACKET,
+    TT_LCURLY_BRACKET,
+    TT_RCURLY_BRACKET,
+    TT_LPAREN,
+    TT_RPAREN,
+    TT_DOLLAR,
+    TT_SEMICOLON,
+    TT_COMMA,
+    TT_PLUS,
+    TT_MINUS,
+    TT_ASTERISK,
+    TT_FORWARD_SLASH,
+    TT_GREATER_THAN,
+    TT_LESS_THAN,
+    TT_EQUALS,
+    TT_PERCENT,
+    TT_PERIOD,
+    TT_GREATER_THAN_EQUALS,
+    TT_LESS_THAN_EQUALS,
+    TT_DOUBLE_EQUALS,
+    TT_PERCENT_EQUALS,
+    TT_DOUBLE_PIPE,
+    TT_DOUBLE_AMPERSAND,
+} token_type_t;
 
-    const char *type_to_cstr(type_t ty);
+const char *token_type_to_cstr(token_type_t ty);
 
-    typedef struct token {
-        struct {
-            char *st;
-            size_t l;
-        } lx;
-        type_t ty;
-        size_t r, c;
-        token *n;
-    } token_t;
+typedef struct token {
+    struct {
+        char *st;
+        size_t l;
+    } lx;
+    token_type_t ty;
+    size_t r, c;
+    token *n;
+} token_t;
 
-    token_t *create(char *st, size_t l,
-                    type_t ty, size_t r,
-                    size_t c);
-};
+token_t *token_create(char *st, size_t l,
+                      token_type_t ty, size_t r,
+                      size_t c);
 
 #endif // TOKEN_HXX
