@@ -38,6 +38,8 @@ namespace token {
         double_ampersand,
     } type_t;
 
+    const char *type_to_cstr(type_t ty);
+
     typedef struct token {
         struct {
             char *st;

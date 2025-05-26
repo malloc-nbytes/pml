@@ -72,7 +72,7 @@ void lexer::dump(lexer_t *l) {
         } else {
             printf("  lx: %.*s\n", (int)t->lx.l, t->lx.st);
         }
-        printf("  ty: %d\n", (int)t->ty);
+        printf("  ty: %s\n", token::type_to_cstr(t->ty));
         printf("  r: %d\n", (int)t->r);
         printf("  c: %d\n", (int)t->c);
         printf("}\n");

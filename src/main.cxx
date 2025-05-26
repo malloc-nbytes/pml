@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "lexer.hxx"
+#include "parser.hxx"
 #include "gl.hxx"
 
 #define CIO_IMPL
@@ -15,8 +16,8 @@ int main(void) {
     char *src = cio_file_to_cstr_wnewlines(input_fp, &src_len);
 
     auto l = lexer::lex(input_fp, src);
-    lexer::dump(&l);
-
+    //lexer::dump(&l);
+    auto p = parser::parse(&l);
 
     return 0;
 }
