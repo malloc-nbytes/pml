@@ -4,6 +4,6 @@
 #include "lexer.hxx"
 #include "grammar.hxx"
 
-namespace parser { program_t *parse(lexer::lexer_t *l); };
+namespace parser { grammar::program_t *parse(lexer::lexer_t *l); };
 
 #endif // PARSER_HXX

@@ -2,4 +2,4 @@
 
 module Build
 
-$"g++ -o main *.cxx -Iinclude/";
+$"g++ -o main *.cxx include/ds/*.hxx -Iinclude/";

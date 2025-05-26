@@ -80,6 +80,26 @@ void lexer::dump(lexer_t *l) {
     }
 }
 
+token::token_t *lexer::peek(const lexer_t *l, int p) {
+    int i = 0;
+    token::token_t *it = l->hd;
+    while (it && i < p) {
+        ++i;
+        it = it->n;
+    }
+    return it;
+}
+
+token::token_t *lexer::next(lexer_t *l) {
+    token::token_t *it = l->hd;
+    l->hd = l->hd->n;
+    return it;
+}
+
+void lexer::discard(lexer_t *l) {
+    l->hd = l->hd->n;
+}
+
 static bool iskw(const char *s, size_t len) {
     const char *kws[] = GL_KWDS;
     for (size_t i = 0; i < sizeof(kws)/sizeof(*kws); ++i) {

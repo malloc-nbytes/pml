@@ -5,6 +5,6 @@
 
 using namespace parser;
 
-program_t *parser::parse(lexer::lexer_t *l) {
+grammar::program_t *parser::parse(lexer::lexer_t *l) {
     assert(0);
 }
