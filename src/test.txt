@@ -1,0 +1,39 @@
+PKG_DOWNLOAD_LOCATION = f"{HOME}/Software"
+PKG_INSTALL_LOCATION = "/usr/local/bin/"
+
+let default_git_update =
+    let current_branch = $"git rev-parse --abbrev-ref HEAD" in
+    $"git fetch origin";
+    let remote_commit  = $f"git rev-parse origin/{current_branch}" in
+    let base_commit    = $f"git merge-base {current_branch} origin/{current_branch}" in
+    if local_commit == base_commit
+    then $"git pull"
+    else _
+
+pkg ampire = {
+    .deps = [{
+        .name = "SDL3"
+        .download = "git clone https://www.github.com/sdl/SDL3.git/ --depth=1"
+        .update = default_git_update
+        .build =
+            mkdir "build";
+            cd "build";
+            $"make -j12"
+        .install =
+            cd "build";
+            $"sudo make install"
+        .uninstall =
+            cd "build";
+            $"sudo make uninstall"
+    }]
+
+    .name = "ampire"
+    .build =
+        let b = "build" in
+        mkdir b;
+        cd b;
+        $"make -j12"
+    .install = undefined
+}
+
+let main () = getpkgs

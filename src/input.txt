@@ -1,0 +1,6 @@
+1 "hello"2 34
+let
+'world' 'foo' __test
+
+&&
+||
