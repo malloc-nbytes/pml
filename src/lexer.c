@@ -82,6 +82,15 @@ Token *lexer_peek(const Lexer *l, int p) {
         return it;
 }
 
+Token *lexer_next(Lexer *l) {
+        assert(0);
+}
+
+void lexer_discard(Lexer *l) {
+        if (!l->hd) { return; }
+        l->hd = l->hd->n;
+}
+
 void lexer_append(Lexer *l, Token *t) {
         if (!l->hd) {
                 l->hd = t;
