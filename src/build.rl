@@ -2,4 +2,13 @@
 
 module Build
 
-$"g++ -o main *.cxx -Iinclude/";
+set_flag("-x");
+
+let debug = false;
+try { debug = ("debug", "d", "deb", "g", "ggdb").contains(argv()[1]); }
+
+if debug {
+    $"gcc -O0 -g -o main *.c -Iinclude/";
+} else {
+    $"gcc -o main *.c -Iinclude/";
+}
