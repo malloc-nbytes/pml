@@ -76,6 +76,12 @@ static Token_Type detop(const char *s, size_t *len) {
 #undef MAX
 }
 
+Token *lexer_peek(const Lexer *l, int p) {
+        Token *it = l->hd;
+        while (it && p-- >= 0) { it = it->n; }
+        return it;
+}
+
 void lexer_append(Lexer *l, Token *t) {
         if (!l->hd) {
                 l->hd = t;
@@ -193,6 +199,8 @@ Lexer lexer_analyze(char *src, const char *fp) {
                         i += len, c += len;
                 }
         }
+
+        lexer_append(&lexer, token_alloc("EOF", 3, TOKEN_TYPE_EOF, r, c, fp));
 
         return lexer;
 }
