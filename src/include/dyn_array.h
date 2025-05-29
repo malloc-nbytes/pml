@@ -65,8 +65,7 @@
         (da).len = 0;                           \
     } while (0)
 
-#define dyn_array_empty                         \
-    {                                           \
+#define dyn_array_empty(t) (t) {                \
         .data = NULL,                           \
         .len = 0,                               \
         .cap = 0,                               \
