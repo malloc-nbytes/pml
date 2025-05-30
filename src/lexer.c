@@ -12,29 +12,29 @@ static SMap g_ops;
 static SMap g_kws;
 
 static void init_ops(void) {
-        static Token_Type lparen = {TOKEN_TYPE_LPAREN};
-        static Token_Type rparen = {TOKEN_TYPE_RPAREN};
-        static Token_Type lcurly = {TOKEN_TYPE_LCURLY_BRACKET};
-        static Token_Type rcurly = {TOKEN_TYPE_RCURLY_BRACKET};
-        static Token_Type lsqr = {TOKEN_TYPE_LSQR_BRACKET};
-        static Token_Type rsqr = {TOKEN_TYPE_RSQR_BRACKET};
-        static Token_Type plus = {TOKEN_TYPE_PLUS};
-        static Token_Type minus = {TOKEN_TYPE_MINUS};
-        static Token_Type asterisk = {TOKEN_TYPE_ASTERISK};
-        static Token_Type forward_slash = {TOKEN_TYPE_FORWARD_SLASH};
-        static Token_Type percent = {TOKEN_TYPE_PERCENT};
-        static Token_Type equals = {TOKEN_TYPE_EQUALS};
-        static Token_Type comma = {TOKEN_TYPE_COMMA};
-        static Token_Type semicolon = {TOKEN_TYPE_SEMICOLON};
-        static Token_Type colon = {TOKEN_TYPE_COLON};
-        static Token_Type dollar = {TOKEN_TYPE_DOLLAR};
-        static Token_Type greater_than = {TOKEN_TYPE_GREATER_THAN};
-        static Token_Type less_than = {TOKEN_TYPE_LESS_THAN};
+        static Token_Type lparen              = {TOKEN_TYPE_LPAREN};
+        static Token_Type rparen              = {TOKEN_TYPE_RPAREN};
+        static Token_Type lcurly              = {TOKEN_TYPE_LCURLY_BRACKET};
+        static Token_Type rcurly              = {TOKEN_TYPE_RCURLY_BRACKET};
+        static Token_Type lsqr                = {TOKEN_TYPE_LSQR_BRACKET};
+        static Token_Type rsqr                = {TOKEN_TYPE_RSQR_BRACKET};
+        static Token_Type plus                = {TOKEN_TYPE_PLUS};
+        static Token_Type minus               = {TOKEN_TYPE_MINUS};
+        static Token_Type asterisk            = {TOKEN_TYPE_ASTERISK};
+        static Token_Type forward_slash       = {TOKEN_TYPE_FORWARD_SLASH};
+        static Token_Type percent             = {TOKEN_TYPE_PERCENT};
+        static Token_Type equals              = {TOKEN_TYPE_EQUALS};
+        static Token_Type comma               = {TOKEN_TYPE_COMMA};
+        static Token_Type semicolon           = {TOKEN_TYPE_SEMICOLON};
+        static Token_Type colon               = {TOKEN_TYPE_COLON};
+        static Token_Type dollar              = {TOKEN_TYPE_DOLLAR};
+        static Token_Type greater_than        = {TOKEN_TYPE_GREATER_THAN};
+        static Token_Type less_than           = {TOKEN_TYPE_LESS_THAN};
         static Token_Type greater_than_equals = {TOKEN_TYPE_GREATER_THAN_EQUALS};
-        static Token_Type less_than_equals = {TOKEN_TYPE_LESS_THAN_EQUALS};
-        static Token_Type double_equals = {TOKEN_TYPE_DOUBLE_EQUALS};
-        static Token_Type double_pipe = {TOKEN_TYPE_DOUBLE_PIPE};
-        static Token_Type double_ampersand = {TOKEN_TYPE_DOUBLE_AMPERSAND};
+        static Token_Type less_than_equals    = {TOKEN_TYPE_LESS_THAN_EQUALS};
+        static Token_Type double_equals       = {TOKEN_TYPE_DOUBLE_EQUALS};
+        static Token_Type double_pipe         = {TOKEN_TYPE_DOUBLE_PIPE};
+        static Token_Type double_ampersand    = {TOKEN_TYPE_DOUBLE_AMPERSAND};
 
         g_ops = smap_create(NULL, NULL);
         smap_insert(&g_ops, "(", &lparen);
@@ -78,7 +78,10 @@ static Token_Type detop(const char *s, size_t *len) {
 
 Token *lexer_peek(const Lexer *l, int p) {
         Token *it = l->hd;
-        while (it && p-- >= 0) { it = it->n; }
+        for (size_t i = 0; i >= p && it; ++i) {
+                assert(it);
+                it = it->n;
+        }
         return it;
 }
 

@@ -5,6 +5,8 @@
 #include "lexer.h"
 #include "token.h"
 #include "gl.h"
+#include "err.h"
+#include "utils.h"
 
 static Expr *parse_expr(Lexer *l);
 
@@ -26,6 +28,10 @@ static Expr_Let *parse_expr_let(Lexer *l) {
         return expr_let_alloc(id->lx.s, id->lx.l, e, in);
 }
 
+static Expr_Array parse_comma_sep_exprs(Lexer *l) {
+        assert(0);
+}
+
 static Expr *parse_primary_expr(Lexer *l) {
         Token *tok = NULL;
         Expr *left = NULL;
@@ -40,22 +46,47 @@ static Expr *parse_primary_expr(Lexer *l) {
         }
 
         while (1) {
-                if (!lexer_peek(l, 0)) { return left; }
-                switch (lexer_peek(l, 0)->ty) {
+                Token *hd = lexer_peek(l, 0);
+                if (!hd) { return left; }
+                switch (hd->ty) {
                 case TOKEN_TYPE_IDENTIFIER: {
-                        ;
+                        left = (Expr *)expr_identifier(hd->lx.s, hd->lx.l);
+                        lexer_discard(l); // identifier
                 } break;
                 case TOKEN_TYPE_LPAREN: {
-                        ;
+                        (void)lexer_next(l); // (
+                        Expr_Array tuple = parse_comma_sep_exprs(l);
+                        (void)expect(l, TOKEN_TYPE_RPAREN);
+                        if (tuple.len > 1) {
+                                // Tuple
+                                //left = expr_tuple_alloc(tuple, tok);
+                                assert(0);
+                        }
+                        else {
+                                // Math
+                                left = tuple.data[0];
+                                dyn_array_free(tuple);
+                        }
                 } break;
                 case TOKEN_TYPE_INTLIT: {
-                        ;
+                        Token *intlit = lexer_next(l);
+                        assert(intlit->lx.l < 32);
+                        char buf[32] = {0};
+                        (void)strncpy(buf, intlit->lx.s, intlit->lx.l);
+                        left = (Expr *)expr_intlit_alloc(atoi(buf));
                 } break;
                 case TOKEN_TYPE_STRLIT: {
-                        ;
+                        Token *strlit = lexer_next(l);
+                        left = (Expr *)expr_strlit_alloc(strlit->lx.s, strlit->lx.l);
                 } break;
                 case TOKEN_TYPE_KEYWORD: {
-                        ;
+                        // TODO: booleans
+                        // TODO: None type
+                        if (!strcmp(hd->lx.s, GL_KW_IN)) {
+                                return left;
+                        } else {
+                                err_wargs("invalid keyword `%s` in primary expression", utils_tmp_str_wlen(hd->lx.s, hd->lx.l));
+                        }
                 } break;
                 default: goto done;
                 }
@@ -139,6 +170,7 @@ Program parser_parse_program(Lexer *l) {
                 .exprs = dyn_array_empty(Expr_Array),
         };
         while (lexer_speek(l, 0)->ty != TOKEN_TYPE_EOF) {
+                printf("HERE\n");
                 dyn_array_append(p.exprs, parse_expr(l));
         }
         return p;

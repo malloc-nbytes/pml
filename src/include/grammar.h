@@ -2,6 +2,7 @@
 #define GRAMMAR_H
 
 #include "ds/arrays.h"
+#include "visitor.h"
 
 typedef enum {
         EXPR_TYPE_BINARY,
@@ -12,8 +13,9 @@ typedef enum {
         EXPR_TYPE_IDENTIFIER,
 } Expr_Type;
 
-typedef struct {
+typedef struct Expr {
         Expr_Type ty;
+        void (*accept)(struct Expr *, Visitor *v);
 } Expr;
 Expr *expr_alloc(Expr_Type ty);
 

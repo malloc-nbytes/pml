@@ -13,7 +13,7 @@ int main(void) {
         char *src = cio_file_to_cstr_wnewlines(fp, &src_len);
 
         Lexer l = lexer_analyze(src, fp);
-        //lexer_dump(&l);
+        lexer_dump(&l);
 
         Program p = parser_parse_program(&l);
 
