@@ -26,24 +26,27 @@ typedef struct {
         Expr base;
         Expr *l;
         Expr *r;
-        Char_Array op;
+        //Char_Array op;
+        char *op;
 } Expr_Binary;
-Expr_Binary *expr_binary_alloc(Expr *l, Expr *r, const char *op, size_t len);
+Expr_Binary *expr_binary_alloc(Expr *l, Expr *r, char *op, size_t len);
 
 typedef struct {
         Expr base;
-        Char_Array op;
+        //Char_Array op;
+        char *op;
         Expr *e;
 } Expr_Unary;
-Expr_Unary *expr_unary_alloc(Expr *e, const char *op, size_t len);
+Expr_Unary *expr_unary_alloc(Expr *e, char *op, size_t len);
 
 typedef struct {
         Expr base;
-        Char_Array id;
+        //Char_Array id;
+        char *id;
         Expr *e;
         Expr *in;
 } Expr_Let;
-Expr_Let *expr_let_alloc(const char *id, size_t len, Expr *e, Expr *in);
+Expr_Let *expr_let_alloc(char *id, size_t len, Expr *e, Expr *in);
 
 typedef struct {
         Expr base;
@@ -53,15 +56,17 @@ Expr_Intlit *expr_intlit_alloc(int i);
 
 typedef struct {
         Expr base;
-        Char_Array s;
+        // Char_Array s;
+        char *s;
 } Expr_Strlit;
-Expr_Strlit *expr_strlit_alloc(const char *s, size_t len);
+Expr_Strlit *expr_strlit_alloc(char *s, size_t len);
 
 typedef struct {
         Expr base;
-        Char_Array id;
+        // Char_Array id;
+        char *id;
 } Expr_Identifier;
-Expr_Identifier *expr_identifier(const char *id, size_t len);
+Expr_Identifier *expr_identifier(char *id, size_t len);
 
 DYN_ARRAY_TYPE(Expr *, Expr_Array);
 

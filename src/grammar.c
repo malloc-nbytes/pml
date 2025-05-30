@@ -118,32 +118,24 @@ Expr *expr_alloc(Expr_Type ty) {
         return e;
 }
 
-#define array_copy(id, cond, next, da, src)     \
-        for (size_t (id) = 0; (cond); next) {   \
-                dyn_array_append(da, (src)[i]); \
-        }
-
-Expr_Binary *expr_binary_alloc(Expr *l, Expr *r, const char *op, size_t len) {
+Expr_Binary *expr_binary_alloc(Expr *l, Expr *r, char *op, size_t len) {
         Expr_Binary *e = (Expr_Binary *)expr_alloc(EXPR_TYPE_BINARY);
         e->l = l;
         e->r = r;
-        e->op = dyn_array_empty(Char_Array);
-        array_copy(i, i < len, ++i, e->op, op);
+        e->op = strndup(op, len);
         return e;
 }
 
-Expr_Unary *expr_unary_alloc(Expr *e, const char *op, size_t len) {
+Expr_Unary *expr_unary_alloc(Expr *e, char *op, size_t len) {
         Expr_Unary *u = (Expr_Unary *)expr_alloc(EXPR_TYPE_UNARY);
         u->e = e;
-        u->op = dyn_array_empty(Char_Array);
-        array_copy(i, i < len, ++i, u->op, op);
+        u->op = strndup(op, len);
         return u;
 }
 
-Expr_Let *expr_let_alloc(const char *id, size_t len, Expr *e, Expr *in) {
+Expr_Let *expr_let_alloc(char *id, size_t len, Expr *e, Expr *in) {
         Expr_Let *l = (Expr_Let *)expr_alloc(EXPR_TYPE_LET);
-        l->id = dyn_array_empty(Char_Array);
-        array_copy(i, i < len, ++i, l->id, id);
+        l->id = strndup(id, len);
         l->e = e;
         l->in = in;
         return l;
@@ -155,16 +147,14 @@ Expr_Intlit *expr_intlit_alloc(int i) {
         return e;
 }
 
-Expr_Strlit *expr_strlit_alloc(const char *s, size_t len) {
+Expr_Strlit *expr_strlit_alloc(char *s, size_t len) {
         Expr_Strlit *e = (Expr_Strlit *)expr_alloc(EXPR_TYPE_STRLIT);
-        e->s = dyn_array_empty(Char_Array);
-        array_copy(i, i < len, ++i, e->s, s);
+        e->s = strndup(s, len);
         return e;
 }
 
-Expr_Identifier *expr_identifier(const char *id, size_t len) {
+Expr_Identifier *expr_identifier(char *id, size_t len) {
         Expr_Identifier *e = (Expr_Identifier *)expr_alloc(EXPR_TYPE_IDENTIFIER);
-        e->id = dyn_array_empty(Char_Array);
-        array_copy(i, i < len, ++i, e->id, id);
+        e->id = strndup(id, len);
         return e;
 }

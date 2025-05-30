@@ -5,9 +5,9 @@ typedef enum {
         RTT_UNIT,
         RTT_INT,
         RTT_STR,
-} Runtime_Type_Kind;
+} RTT_Kind;
 
-typedef struct { Runtime_Type_Kind kind; } RTT;
+typedef struct { RTT_Kind kind; } RTT;
 
 typedef struct {
         RTT base;
@@ -20,5 +20,8 @@ typedef struct {
 typedef struct {
         RTT base;
 } RTT_Unit;
+
+int rttcompat(const RTT *r1, const RTT *r2);
+RTT *rtt_alloc(RTT_Kind k);
 
 #endif // RTT_H

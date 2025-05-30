@@ -1,2 +1,2 @@
-let x = 3 in x
+let sum a b = a + b
 

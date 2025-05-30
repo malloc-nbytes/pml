@@ -8,7 +8,7 @@
 #include "ds/arrays.h"
 
 typedef struct {
-        const char *id;
+        char *id;
         RTT *rtt;
 } Sem_Sym;
 
@@ -20,5 +20,7 @@ typedef struct {
 } Sem_Scope;
 
 Sem_Scope semantic_analyze(Program *p);
+Sem_Sym *sem_scope_lookup(const Sem_Scope *scope, const char *id);
+void sem_add_sym_to_scope(Sem_Scope *ss, Sem_Sym *sym);
 
 #endif // SEM_H
