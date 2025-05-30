@@ -5,32 +5,110 @@
 #include "err.h"
 #include "ds/arrays.h"
 
+/////////////////////////
+// Accept Functions
+/////////////////////////
+
+void accept_expr_binary(Expr *e, Visitor *v) {
+        if (v->visit_expr_binary) {
+                v->visit_expr_binary(v, (Expr_Binary *)e);
+        }
+}
+
+void accept_expr_unary(Expr *e, Visitor *v) {
+        if (v->visit_expr_unary) {
+                v->visit_expr_unary(v, (Expr_Unary *)e);
+        }
+}
+
+void accept_expr_let(Expr *e, Visitor *v) {
+        if (v->visit_expr_let) {
+                v->visit_expr_let(v, (Expr_Let *)e);
+        }
+}
+
+void accept_expr_intlit(Expr *e, Visitor *v) {
+        if (v->visit_expr_intlit) {
+                v->visit_expr_intlit(v, (Expr_Intlit *)e);
+        }
+}
+
+void accept_expr_strlit(Expr *e, Visitor *v) {
+        if (v->visit_expr_strlit) {
+                v->visit_expr_strlit(v, (Expr_Strlit *)e);
+        }
+}
+
+void accept_expr_identifier(Expr *e, Visitor *v) {
+        if (v->visit_expr_identifier) {
+                v->visit_expr_identifier(v, (Expr_Identifier *)e);
+        }
+}
+
+/////////////////////////
+// End Accept Functions
+/////////////////////////
+
+/////////////////////////
+// Visitor Functions
+/////////////////////////
+
+void visit_expr_binary(Visitor *v, Expr_Binary *e) {
+        e->l->accept(e->l, v);
+        e->r->accept(e->r, v);
+}
+
+void visit_expr_unary(Visitor *v, Expr_Unary *e) {
+        e->e->accept(e->e, v);
+}
+
+void visit_expr_let(Visitor *v, Expr_Let *e) {
+        e->e->accept(e->e, v);
+        e->in->accept(e->in, v);
+}
+
+void visit_expr_intlit(Visitor *v, Expr_Intlit *e) {}
+
+void visit_expr_strlit(Visitor *v, Expr_Strlit *e) {}
+
+void visit_expr_identifier(Visitor *v, Expr_Identifier *e) {}
+
+/////////////////////////
+// End Visitor Functions
+/////////////////////////
+
 Expr *expr_alloc(Expr_Type ty) {
         Expr *e;
         switch (ty) {
         case EXPR_TYPE_BINARY: {
-                e = malloc(sizeof(Expr_Binary));
+                e = (Expr *)malloc(sizeof(Expr_Binary));
                 e->ty = EXPR_TYPE_BINARY;
+                e->accept = accept_expr_binary;
         } break;
         case EXPR_TYPE_UNARY: {
-                e = malloc(sizeof(Expr_Unary));
+                e = (Expr *)malloc(sizeof(Expr_Unary));
                 e->ty = EXPR_TYPE_UNARY;
+                e->accept = accept_expr_unary;
         } break;
         case EXPR_TYPE_LET: {
-                e = malloc(sizeof(Expr_Let));
+                e = (Expr *)malloc(sizeof(Expr_Let));
                 e->ty = EXPR_TYPE_LET;
+                e->accept = accept_expr_let;
         } break;
         case EXPR_TYPE_INTLIT: {
-                e = malloc(sizeof(Expr_Intlit));
+                e = (Expr *)malloc(sizeof(Expr_Intlit));
                 e->ty = EXPR_TYPE_INTLIT;
+                e->accept = accept_expr_intlit;
         } break;
         case EXPR_TYPE_STRLIT: {
-                e = malloc(sizeof(Expr_Strlit));
+                e = (Expr *)malloc(sizeof(Expr_Strlit));
                 e->ty = EXPR_TYPE_STRLIT;
+                e->accept = accept_expr_strlit;
         } break;
         case EXPR_TYPE_IDENTIFIER: {
-                e = malloc(sizeof(Expr_Identifier));
+                e = (Expr *)malloc(sizeof(Expr_Identifier));
                 e->ty = EXPR_TYPE_IDENTIFIER;
+                e->accept = accept_expr_identifier;
         } break;
         default: {
                 err_wargs("unknown expr type: %d", (int)ty);

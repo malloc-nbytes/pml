@@ -2,7 +2,8 @@
 #define GRAMMAR_H
 
 #include "ds/arrays.h"
-#include "visitor.h"
+
+typedef struct Visitor Visitor;
 
 typedef enum {
         EXPR_TYPE_BINARY,
@@ -65,5 +66,23 @@ DYN_ARRAY_TYPE(Expr *, Expr_Array);
 typedef struct {
         Expr_Array exprs;
 } Program;
+
+typedef struct Visitor {
+        void *ctx;
+
+        void (*visit_expr_binary)(struct Visitor *, Expr_Binary *e);
+        void (*visit_expr_unary)(struct Visitor *, Expr_Unary *e);
+        void (*visit_expr_let)(struct Visitor *, Expr_Let *e);
+        void (*visit_expr_intlit)(struct Visitor *, Expr_Intlit *e);
+        void (*visit_expr_strlit)(struct Visitor *, Expr_Strlit *e);
+        void (*visit_expr_identifier)(struct Visitor *, Expr_Identifier *e);
+} Visitor;
+
+// void visit_expr_binary(Visitor *v, Expr_Binary *e);
+// void visit_expr_unary(Visitor *v, Expr_Unary *e);
+// void visit_expr_let(Visitor *v, Expr_Let *e);
+// void visit_expr_intlit(Visitor *v, Expr_Intlit *e);
+// void visit_expr_strlit(Visitor *v, Expr_Strlit *e);
+// void visit_expr_identifier(Visitor *v, Expr_Identifier *e);
 
 #endif // GRAMMAR_H
