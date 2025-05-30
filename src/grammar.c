@@ -79,7 +79,6 @@ void visit_expr_identifier(Visitor *v, Expr_Identifier *e) {}
 
 Expr *expr_alloc(Expr_Type ty) {
         Expr *e;
-        e->rtt = NULL;
         switch (ty) {
         case EXPR_TYPE_BINARY: {
                 e = (Expr *)malloc(sizeof(Expr_Binary));
@@ -115,6 +114,7 @@ Expr *expr_alloc(Expr_Type ty) {
                 err_wargs("unknown expr type: %d", (int)ty);
         } break;
         }
+        e->rtt = NULL;
         return e;
 }
 

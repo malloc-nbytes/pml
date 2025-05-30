@@ -11,11 +11,21 @@
 static Expr *parse_expr(Lexer *l);
 
 static Token *expect(Lexer *l, Token_Type exp) {
-        assert(0);
+        Token *hd = lexer_next(l);
+        if (hd->ty != exp) {
+                err_wargs("expected token `%s` but got `%s`",
+                          token_type_to_cstr(exp), token_type_to_cstr(hd->ty));
+        }
+        return hd;
 }
 
 static Token *expectkw(Lexer *l, const char *kw) {
-        assert(0);
+        Token *hd = lexer_next(l);
+        if (hd->ty != TOKEN_TYPE_KEYWORD || strncmp(hd->lx.s, kw, hd->lx.l) != 0) {
+                err_wargs("expected keyword `%s` but got `%s`",
+                          kw, utils_tmp_str_wlen(hd->lx.s, hd->lx.l));
+        }
+        return hd;
 }
 
 static Expr_Let *parse_expr_let(Lexer *l) {
@@ -82,12 +92,19 @@ static Expr *parse_primary_expr(Lexer *l) {
                 case TOKEN_TYPE_KEYWORD: {
                         // TODO: booleans
                         // TODO: None type
-                        if (!strcmp(hd->lx.s, GL_KW_IN)) {
+                        if (!strncmp(hd->lx.s, GL_KW_IN, hd->lx.l)) {
                                 return left;
                         } else {
                                 err_wargs("invalid keyword `%s` in primary expression", utils_tmp_str_wlen(hd->lx.s, hd->lx.l));
                         }
                 } break;
+                /* case TOKEN_TYPE_NEWLINE: { */
+                /*         lexer_discard(l); // \n */
+                /*         if (!left) { */
+                /*                 err("could not parse primary expression, hit newline"); */
+                /*         } */
+                /*         goto done; */
+                /* } break; */
                 default: goto done;
                 }
         }
@@ -159,10 +176,12 @@ static Expr *parse_bitwise_expr(Lexer *l) {
 
 static Expr *parse_expr(Lexer *l) {
         Token *hd = lexer_peek(l, 0);
-        if (!strcmp(hd->lx.s, GL_KW_LET)) {
+        if (!strncmp(hd->lx.s, GL_KW_LET, hd->lx.l)) {
                 return (Expr *)parse_expr_let(l);
         }
-        return parse_bitwise_expr(l);
+        Expr *e = parse_bitwise_expr(l);
+        assert(e);
+        return e;
 }
 
 Program parser_parse_program(Lexer *l) {
@@ -170,7 +189,6 @@ Program parser_parse_program(Lexer *l) {
                 .exprs = dyn_array_empty(Expr_Array),
         };
         while (lexer_speek(l, 0)->ty != TOKEN_TYPE_EOF) {
-                printf("HERE\n");
                 dyn_array_append(p.exprs, parse_expr(l));
         }
         return p;

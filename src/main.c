@@ -13,10 +13,11 @@ int main(void) {
         size_t src_len;
         char *src = cio_file_to_cstr_wnewlines(fp, &src_len);
 
-        Lexer l = lexer_analyze(src, fp);
-        lexer_dump(&l);
+        Lexer lexer = lexer_analyze(src, fp);
+        lexer_dump(&lexer);
 
-        Program p = parser_parse_program(&l);
+        Program program = parser_parse_program(&lexer);
+        Sem_Scope scope = semantic_analyze(&program);
 
         return 0;
 }

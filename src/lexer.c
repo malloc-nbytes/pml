@@ -78,7 +78,7 @@ static Token_Type detop(const char *s, size_t *len) {
 
 Token *lexer_peek(const Lexer *l, int p) {
         Token *it = l->hd;
-        for (size_t i = 0; i >= p && it; ++i) {
+        for (size_t i = 0; i > p && it; ++i) {
                 assert(it);
                 it = it->n;
         }
@@ -86,7 +86,10 @@ Token *lexer_peek(const Lexer *l, int p) {
 }
 
 Token *lexer_next(Lexer *l) {
-        assert(0);
+        Token *hd = l->hd;
+        assert(hd && "hd is NULL");
+        l->hd = l->hd->n;
+        return hd;
 }
 
 void lexer_discard(Lexer *l) {
@@ -178,7 +181,7 @@ Lexer lexer_analyze(char *src, const char *fp) {
                 if (ch == ' ' || ch == '\t') {
                         ++i, ++c;
                 } else if (ch == '\n') {
-                        lexer_append(&lexer, token_alloc(src+i, 1, TOKEN_TYPE_NEWLINE, r, c, fp));
+                        /* lexer_append(&lexer, token_alloc(src+i, 1, TOKEN_TYPE_NEWLINE, r, c, fp)); */
                         ++i, ++r, c = 1;
                 } else if (ch == '_' || isalpha(ch)) {
                         size_t len = consume_until(src+i, not_ident);
