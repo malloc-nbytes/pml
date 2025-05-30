@@ -3,6 +3,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "ds/smap.h"
+#include "sem.h"
 #define CIO_IMPL
 #include "cio.h"
 

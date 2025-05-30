@@ -2,6 +2,7 @@
 #define GRAMMAR_H
 
 #include "ds/arrays.h"
+#include "rtt.h"
 
 typedef struct Visitor Visitor;
 
@@ -17,6 +18,7 @@ typedef enum {
 typedef struct Expr {
         Expr_Type ty;
         void (*accept)(struct Expr *, Visitor *v);
+        RTT *rtt;
 } Expr;
 Expr *expr_alloc(Expr_Type ty);
 
@@ -70,12 +72,12 @@ typedef struct {
 typedef struct Visitor {
         void *ctx;
 
-        void (*visit_expr_binary)(struct Visitor *, Expr_Binary *e);
-        void (*visit_expr_unary)(struct Visitor *, Expr_Unary *e);
-        void (*visit_expr_let)(struct Visitor *, Expr_Let *e);
-        void (*visit_expr_intlit)(struct Visitor *, Expr_Intlit *e);
-        void (*visit_expr_strlit)(struct Visitor *, Expr_Strlit *e);
-        void (*visit_expr_identifier)(struct Visitor *, Expr_Identifier *e);
+        void (*visit_expr_binary)(Visitor *, Expr_Binary *e);
+        void (*visit_expr_unary)(Visitor *, Expr_Unary *e);
+        void (*visit_expr_let)(Visitor *, Expr_Let *e);
+        void (*visit_expr_intlit)(Visitor *, Expr_Intlit *e);
+        void (*visit_expr_strlit)(Visitor *, Expr_Strlit *e);
+        void (*visit_expr_identifier)(Visitor *, Expr_Identifier *e);
 } Visitor;
 
 // void visit_expr_binary(Visitor *v, Expr_Binary *e);
