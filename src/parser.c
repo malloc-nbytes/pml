@@ -43,7 +43,8 @@ static Expr_Letfn *parse_expr_letfn(Parsing_Context *ctx) {
         dyn_array(size_t, param_names_len);
 
         if (lexer_speek(ctx->l, 0)->ty == TOKEN_TYPE_LPAREN) {
-                        assert(0);
+                lexer_discard(ctx->l); // (
+                (void)expect(ctx->l, TOKEN_TYPE_RPAREN);
         } else {
                 while (lexer_speek(ctx->l, 0)->ty == TOKEN_TYPE_IDENTIFIER) {
                         Token *hd = lexer_next(ctx->l);

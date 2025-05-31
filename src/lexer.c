@@ -69,6 +69,7 @@ static Token_Type detop(const char *s, size_t *len) {
                 char buf[MAX] = {0};
                 (void)strncpy(buf, s, i);
                 if (smap_contains(&g_ops, buf)) {
+                        *len = i;
                         return *(Token_Type *)smap_get(&g_ops, buf);
                 }
         }

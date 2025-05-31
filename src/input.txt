@@ -1,5 +1,3 @@
--- let x =
---     let s = 1 in
---     s
-
 let sum a b = a+b
+let f a = a
+let main () = 1
