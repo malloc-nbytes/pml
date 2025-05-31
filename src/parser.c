@@ -38,9 +38,17 @@ static Expr_Let *parse_expr_let(Parsing_Context *ctx) {
         Token *id = expect(ctx->l, TOKEN_TYPE_IDENTIFIER);
         (void)expect(ctx->l, TOKEN_TYPE_EQUALS);
         Expr *e = parse_expr(ctx);
-        (void)expectkw(ctx, GL_KW_IN);
-        Expr *in = parse_expr(ctx);
-        return expr_let_alloc(id->lx.s, id->lx.l, e, in);
+
+        if (ctx->global_scope) {
+                return expr_let_alloc(id->lx.s, id->lx.l, e, NULL);
+        } else {
+                (void)expectkw(ctx, GL_KW_IN);
+                Expr *in = parse_expr(ctx);
+                return expr_let_alloc(id->lx.s, id->lx.l, e, in);
+        }
+
+        assert(0 && "unreachable");
+        return NULL;
 }
 
 static Expr_Array parse_comma_sep_exprs(Parsing_Context *ctx) {
@@ -99,17 +107,14 @@ static Expr *parse_primary_expr(Parsing_Context *ctx) {
                         // TODO: None type
                         if (!strncmp(hd->lx.s, GL_KW_IN, hd->lx.l)) {
                                 return left;
-                        } else {
-                                err_wargs("invalid keyword `%s` in primary expression", utils_tmp_str_wlen(hd->lx.s, hd->lx.l));
+                        } else if (!strncmp(hd->lx.s, GL_KW_LET, hd->lx.l)) {
+                                return left;
+                        }
+                        else {
+                                err_wargs("invalid keyword `%s` in primary expression",
+                                          utils_tmp_str_wlen(hd->lx.s, hd->lx.l));
                         }
                 } break;
-                /* case TOKEN_TYPE_NEWLINE: { */
-                /*         lexer_discard(ctx->l); // \n */
-                /*         if (!left) { */
-                /*                 err("could not parse primary expression, hit newline"); */
-                /*         } */
-                /*         goto done; */
-                /* } break; */
                 default: goto done;
                 }
         }
@@ -194,7 +199,7 @@ Program parser_parse_program(Lexer *l) {
 
         Parsing_Context ctx = (Parsing_Context) {
                 .l = l,
-                .global_scope = 0,
+                .global_scope = 1,
         };
 
         while (lexer_speek(ctx.l, 0)->ty != TOKEN_TYPE_EOF) {

@@ -24,7 +24,7 @@ void cio_create_file(const char *fp, int force_overwrite) {
         fclose(f);
 }
 
-char * cio_file_to_cstr_wnewlines(const char *fp, size_t *ret_len) {
+char *cio_file_to_cstr_wnewlines(const char *fp, size_t *ret_len) {
         FILE *f = fopen(fp, "r");
         char *line = NULL;
         size_t len = 0;
@@ -44,7 +44,7 @@ char * cio_file_to_cstr_wnewlines(const char *fp, size_t *ret_len) {
                 if (!strcmp(line, "\n")) { continue; }
                 for (size_t i = 0; line[i]; ++i) {
                         if (buf.len >= buf.cap) {
-                                buf.cap = buf.cap == 0 ? 2 : buf.cap*2;
+                                buf.cap = buf.cap == 0 ? 256 : buf.cap*2;
                                 buf.data = realloc(buf.data, buf.cap);
                         }
                         buf.data[buf.len++] = line[i];

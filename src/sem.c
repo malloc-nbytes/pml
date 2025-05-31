@@ -6,6 +6,13 @@
 #include "grammar.h"
 #include "ds/smap.h"
 
+static Sem_Sym *sem_sym_alloc(char *id, RTT *rtt) {
+        Sem_Sym *sym = (Sem_Sym *)malloc(sizeof(Sem_Sym));
+        sym->id = id;
+        sym->rtt = rtt;
+        return sym;
+}
+
 void sem_add_sym_to_scope(Sem_Scope *ss, Sem_Sym *sym) {
         smap_insert(&ss->scope.data[ss->scope.len-1], sym->id, (void *)sym);
 }
@@ -52,12 +59,23 @@ static void sem_visit_expr_let(Visitor *v, Expr_Let *e) {
 
         e->e->accept(e->e, v);
 
-        Sem_Sym *sym = (Sem_Sym *)malloc(sizeof(Sem_Sym));
-        sym->id = e->id;
-        sym->rtt = e->base.rtt;
+        Sem_Sym *sym = sem_sym_alloc(e->id, e->base.rtt);
         sem_add_sym_to_scope(s, sym);
 
-        e->in->accept(e->in, v);
+        if (e->in) { e->in->accept(e->in, v); }
+}
+
+static void sem_visit_expr_letfn(Visitor *v, Expr_Letfn *e) {
+        Sem_Scope *s = (Sem_Scope *)v->ctx;
+
+        assert(0);
+
+        /* e->e->accept(e->e, v); */
+
+        /* Sem_Sym *sym = sem_sym_alloc(e->id, e->base.rtt); */
+        /* sem_add_sym_to_scope(s, sym); */
+
+        /* if (e->in) { e->in->accept(e->in, v); } */
 }
 
 static void sem_visit_expr_unary(Visitor *v, Expr_Unary *e) {
@@ -76,6 +94,7 @@ static Visitor *sem_create_visitor(Sem_Scope *s) {
         v->visit_expr_binary = sem_visit_expr_bin;
         v->visit_expr_unary = sem_visit_expr_unary;
         v->visit_expr_let = sem_visit_expr_let;
+        v->visit_expr_letfn = sem_visit_expr_letfn;
         v->visit_expr_intlit = sem_visit_expr_intlit;
         v->visit_expr_strlit = sem_visit_expr_strlit;
         v->visit_expr_identifier = sem_visit_expr_identifier;

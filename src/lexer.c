@@ -181,7 +181,6 @@ Lexer lexer_analyze(char *src, const char *fp) {
                 if (ch == ' ' || ch == '\t') {
                         ++i, ++c;
                 } else if (ch == '\n') {
-                        /* lexer_append(&lexer, token_alloc(src+i, 1, TOKEN_TYPE_NEWLINE, r, c, fp)); */
                         ++i, ++r, c = 1;
                 } else if (ch == '_' || isalpha(ch)) {
                         size_t len = consume_until(src+i, not_ident);

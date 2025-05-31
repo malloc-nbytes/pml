@@ -27,6 +27,12 @@ void accept_expr_let(Expr *e, Visitor *v) {
         }
 }
 
+void accept_expr_letfn(Expr *e, Visitor *v) {
+        if (v->visit_expr_letfn) {
+                v->visit_expr_letfn(v, (Expr_Letfn *)e);
+        }
+}
+
 void accept_expr_intlit(Expr *e, Visitor *v) {
         if (v->visit_expr_intlit) {
                 v->visit_expr_intlit(v, (Expr_Intlit *)e);
@@ -64,7 +70,16 @@ void visit_expr_unary(Visitor *v, Expr_Unary *e) {
 
 void visit_expr_let(Visitor *v, Expr_Let *e) {
         e->e->accept(e->e, v);
-        e->in->accept(e->in, v);
+        if (e->in) {
+                e->in->accept(e->in, v);
+        }
+}
+
+void visit_expr_letfn(Visitor *v, Expr_Letfn *e) {
+        e->e->accept(e->e, v);
+        if (e->in) {
+                e->in->accept(e->in, v);
+        }
 }
 
 void visit_expr_intlit(Visitor *v, Expr_Intlit *e) {}
@@ -140,6 +155,26 @@ Expr_Let *expr_let_alloc(char *id, size_t len, Expr *e, Expr *in) {
         l->in = in;
         return l;
 }
+
+Expr_Letfn *expr_letfn_alloc(
+        char *id,
+        size_t len,
+        Expr **params,
+        size_t params_len,
+        Expr *e,
+        Expr *in)
+{
+        Expr_Letfn *l = (Expr_Letfn *)expr_alloc(EXPR_TYPE_LETFN);
+        l->id = strndup(id, len);
+        l->e = e;
+        l->in = in;
+        l->params = dyn_array_empty(Expr_Array);
+        for (size_t i = 0; i < params_len; ++i) {
+                dyn_array_append(l->params, params[i]);
+        }
+        return l;
+}
+
 
 Expr_Intlit *expr_intlit_alloc(int i) {
         Expr_Intlit *e = (Expr_Intlit *)expr_alloc(EXPR_TYPE_INTLIT);
