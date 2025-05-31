@@ -7,6 +7,7 @@
 #include "gl.h"
 #include "err.h"
 #include "utils.h"
+#include "log.h"
 
 typedef struct {
         Lexer *l;
@@ -33,22 +34,55 @@ static Token *expectkw(Parsing_Context *ctx, const char *kw) {
         return hd;
 }
 
+static Expr_Letfn *parse_expr_letfn(Parsing_Context *ctx) {
+        LOG_WARGS(LOG_INFO, stdout, "Parsing `letfn` expression, scope: %d", ctx->global_scope);
+        lexer_discard(ctx->l); // let
+        Token *id = expect(ctx->l, TOKEN_TYPE_IDENTIFIER);
+
+        dyn_array(char *, params);
+        dyn_array(size_t, param_names_len);
+
+        if (lexer_speek(ctx->l, 0)->ty == TOKEN_TYPE_LPAREN) {
+                        assert(0);
+        } else {
+                while (lexer_speek(ctx->l, 0)->ty == TOKEN_TYPE_IDENTIFIER) {
+                        Token *hd = lexer_next(ctx->l);
+                        dyn_array_append(params, strdup(utils_tmp_str_wlen(hd->lx.s, hd->lx.l)));
+                        dyn_array_append(param_names_len, hd->lx.l);
+                }
+        }
+
+        (void)expect(ctx->l, TOKEN_TYPE_EQUALS);
+        ++ctx->global_scope;
+        Expr *e = parse_expr(ctx);
+        Expr *in = NULL;
+
+        Expr_Letfn *fn = expr_letfn_alloc(id->lx.s, id->lx.l,
+                                          params.data, param_names_len.data,
+                                          params.len, e, in);
+        for (size_t i = 0; i < params.len; ++i) {
+                free(params.data[i]);
+        }
+        dyn_array_free(params);
+        dyn_array_free(param_names_len);
+        --ctx->global_scope;
+        return fn;
+}
+
 static Expr_Let *parse_expr_let(Parsing_Context *ctx) {
+        LOG_WARGS(LOG_INFO, stdout, "Parsing `let` expression, scope: %d", ctx->global_scope);
         lexer_discard(ctx->l); // let
         Token *id = expect(ctx->l, TOKEN_TYPE_IDENTIFIER);
         (void)expect(ctx->l, TOKEN_TYPE_EQUALS);
         Expr *e = parse_expr(ctx);
+        Expr *in = NULL;
 
-        if (ctx->global_scope) {
-                return expr_let_alloc(id->lx.s, id->lx.l, e, NULL);
-        } else {
+        if (ctx->global_scope > 0) {
                 (void)expectkw(ctx, GL_KW_IN);
                 Expr *in = parse_expr(ctx);
-                return expr_let_alloc(id->lx.s, id->lx.l, e, in);
         }
 
-        assert(0 && "unreachable");
-        return NULL;
+        return expr_let_alloc(id->lx.s, id->lx.l, e, in);
 }
 
 static Expr_Array parse_comma_sep_exprs(Parsing_Context *ctx) {
@@ -186,11 +220,21 @@ static Expr *parse_bitwise_expr(Parsing_Context *ctx) {
 
 static Expr *parse_expr(Parsing_Context *ctx) {
         Token *hd = lexer_peek(ctx->l, 0);
+        LOG_WARGS(LOG_INFO, stdout, "parsing expression: %s",
+                  utils_tmp_str_wlen(hd->lx.s, hd->lx.l));
         if (!strncmp(hd->lx.s, GL_KW_LET, hd->lx.l)) {
+                if (hd->n && hd->n->n
+                    && (hd->n->n->ty == TOKEN_TYPE_LPAREN
+                        || hd->n->n->ty == TOKEN_TYPE_IDENTIFIER)) {
+                        return (Expr *)parse_expr_letfn(ctx);
+                }
                 return (Expr *)parse_expr_let(ctx);
         }
         Expr *e = parse_bitwise_expr(ctx);
-        assert(e);
+        if (!e) {
+                err_wargs("could not parse expression at: %s",
+                          utils_tmp_str_wlen(hd->lx.s, hd->lx.l));
+        }
         return e;
 }
 
@@ -199,7 +243,7 @@ Program parser_parse_program(Lexer *l) {
 
         Parsing_Context ctx = (Parsing_Context) {
                 .l = l,
-                .global_scope = 1,
+                .global_scope = 0,
         };
 
         while (lexer_speek(ctx.l, 0)->ty != TOKEN_TYPE_EOF) {

@@ -15,6 +15,7 @@ unsigned long djb2(const char *str) {
 
 char *utils_tmp_str_wlen(const char *s, size_t n) {
         static char buf[256] = {0};
+        (void)memset(buf, '\0', 256);
         (void)strncpy(buf, s, n);
         return buf;
 }

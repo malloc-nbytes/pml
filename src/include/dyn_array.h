@@ -152,6 +152,10 @@
         (da).len--;                                          \
     } while (0)
 
+#define dyn_array_pop(da) \
+    ((da).len > 0 ? ((da).len--, (da).data[(da).len]) : \
+     (fprintf(stderr, "[dyn_array error]: cannot pop from empty array\n"), exit(1), (da).data[0]))
+
 #define dyn_array_explode(da) (da).data, (da).len, (da).cap
 
 #define dyn_array_explode_mem(da) &(da).data, &(da).len, &(da).cap

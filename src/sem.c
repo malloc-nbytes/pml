@@ -68,14 +68,44 @@ static void sem_visit_expr_let(Visitor *v, Expr_Let *e) {
 static void sem_visit_expr_letfn(Visitor *v, Expr_Letfn *e) {
         Sem_Scope *s = (Sem_Scope *)v->ctx;
 
-        assert(0);
+        // Push a new scope for the function's parameters
+        dyn_array_append(s->scope, smap_create(NULL, NULL));
 
-        /* e->e->accept(e->e, v); */
+        // Create RTT_Function type
+        RTT_Function *fn_type = (RTT_Function *)malloc(sizeof(RTT_Function));
+        fn_type->base.kind = RTT_FUNCTION;
+        fn_type->ptys = dyn_array_empty(RTT_Ptr_Array);
 
-        /* Sem_Sym *sym = sem_sym_alloc(e->id, e->base.rtt); */
-        /* sem_add_sym_to_scope(s, sym); */
+        // Add parameters to the new scope with RTT_UNIT as a placeholder type
+        for (size_t i = 0; i < e->params.len; i++) {
+                RTT *param_type = rtt_alloc(RTT_UNIT); // Placeholder type
+                dyn_array_append(fn_type->ptys, param_type);
+                Sem_Sym *param_sym = sem_sym_alloc(e->params.data[i], param_type);
+                sem_add_sym_to_scope(s, param_sym);
+        }
 
-        /* if (e->in) { e->in->accept(e->in, v); } */
+        // Visit the function body to determine its return type
+        e->e->accept(e->e, v);
+        fn_type->rty = e->e->rtt ? e->base.rtt : rtt_alloc(RTT_UNIT); // Default to RTT_UNIT if body has no type
+
+        // Set the RTT of the letfn expression itself
+        e->base.rtt = (RTT *)fn_type;
+
+        // Register the function in the outer scope
+        Sem_Sym *fn_sym = sem_sym_alloc(e->id, (RTT *)fn_type);
+        // Remove the inner scope temporarily to access the outer scope
+        SMap temp = dyn_array_pop(s->scope);
+        sem_add_sym_to_scope(s, fn_sym);
+        // Restore the inner scope
+        dyn_array_append(s->scope, temp);
+
+        // Pop the function's parameter scope
+        dyn_array_pop(s->scope);
+
+        // Visit the 'in' expression if it exists
+        if (e->in) {
+                e->in->accept(e->in, v);
+        }
 }
 
 static void sem_visit_expr_unary(Visitor *v, Expr_Unary *e) {
@@ -85,7 +115,14 @@ static void sem_visit_expr_unary(Visitor *v, Expr_Unary *e) {
 
 static void sem_visit_expr_bin(Visitor *v, Expr_Binary *e) {
         Sem_Scope *s = (Sem_Scope *)v->ctx;
-        assert(0);
+        e->l->accept(e->l, v);
+        e->r->accept(e->r, v);
+        if (!rttcompat(e->l->rtt, e->r->rtt)) {
+                char buf[256] = {0};
+                sprintf(buf, "type %d is not compatible with type %d",
+                        (int)e->l->rtt->kind, (int)e->r->rtt->kind);
+                pusherr(s, buf);
+        }
 }
 
 static Visitor *sem_create_visitor(Sem_Scope *s) {

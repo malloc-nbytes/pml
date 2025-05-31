@@ -178,7 +178,9 @@ Lexer lexer_analyze(char *src, const char *fp) {
         while (src[i]) {
                 char ch = src[i];
                 Token *t = NULL;
-                if (ch == ' ' || ch == '\t') {
+                if (ch == '-' && src[i+1] && src[i+1] == '-') {
+                        while (src[i] && src[i] != '\n') ++i, ++c;
+                } else if (ch == ' ' || ch == '\t') {
                         ++i, ++c;
                 } else if (ch == '\n') {
                         ++i, ++r, c = 1;

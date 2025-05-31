@@ -3,6 +3,7 @@
 #include "grammar.h"
 #include "dyn_array.h"
 #include "err.h"
+#include "utils.h"
 #include "ds/arrays.h"
 
 /////////////////////////
@@ -110,6 +111,11 @@ Expr *expr_alloc(Expr_Type ty) {
                 e->ty = EXPR_TYPE_LET;
                 e->accept = accept_expr_let;
         } break;
+        case EXPR_TYPE_LETFN: {
+                e = (Expr *)malloc(sizeof(Expr_Letfn));
+                e->ty = EXPR_TYPE_LETFN;
+                e->accept = accept_expr_letfn;
+        } break;
         case EXPR_TYPE_INTLIT: {
                 e = (Expr *)malloc(sizeof(Expr_Intlit));
                 e->ty = EXPR_TYPE_INTLIT;
@@ -159,7 +165,8 @@ Expr_Let *expr_let_alloc(char *id, size_t len, Expr *e, Expr *in) {
 Expr_Letfn *expr_letfn_alloc(
         char *id,
         size_t len,
-        Expr **params,
+        char **params,
+        size_t *param_names_len,
         size_t params_len,
         Expr *e,
         Expr *in)
@@ -168,9 +175,11 @@ Expr_Letfn *expr_letfn_alloc(
         l->id = strndup(id, len);
         l->e = e;
         l->in = in;
-        l->params = dyn_array_empty(Expr_Array);
+        l->params = dyn_array_empty(Str_Array);
         for (size_t i = 0; i < params_len; ++i) {
-                dyn_array_append(l->params, params[i]);
+                dyn_array_append(l->params,
+                                 strdup(utils_tmp_str_wlen(params[i],
+                                                           param_names_len[i])));
         }
         return l;
 }

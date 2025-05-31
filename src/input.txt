@@ -1,4 +1,5 @@
-let x = 1
-let y = 2
+-- let x =
+--     let s = 1 in
+--     s
 
-let sum a b = a + b
+let sum a b = a+b

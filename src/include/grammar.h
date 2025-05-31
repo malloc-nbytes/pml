@@ -51,14 +51,15 @@ Expr_Let *expr_let_alloc(char *id, size_t len, Expr *e, Expr *in);
 typedef struct {
         Expr base;
         char *id;
-        Expr_Array params;
+        Str_Array params;
         Expr *e;
         Expr *in; // optional, if NULL, it is global
 } Expr_Letfn;
 Expr_Letfn *expr_letfn_alloc(
         char *id,
         size_t len,
-        Expr **params,
+        char **params,
+        size_t *param_names_len,
         size_t params_len,
         Expr *e,
         Expr *in
