@@ -1,3 +1,5 @@
 let sum a b = a+b
-let f a = a
-let main () = 1
+let main () =
+    let x = 1 in
+    let y = 2 in
+    sum x y

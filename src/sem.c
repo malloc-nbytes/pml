@@ -125,6 +125,11 @@ static void sem_visit_expr_bin(Visitor *v, Expr_Binary *e) {
         }
 }
 
+static void sem_visit_expr_funccall(Visitor *v, Expr_Funccall *e) {
+        Sem_Scope *s = (Sem_Scope *)v->ctx;
+        assert(0);
+}
+
 static Visitor *sem_create_visitor(Sem_Scope *s) {
         Visitor *v = (Visitor *)malloc(sizeof(Visitor));
         v->ctx = (void *)s;
@@ -135,6 +140,7 @@ static Visitor *sem_create_visitor(Sem_Scope *s) {
         v->visit_expr_intlit = sem_visit_expr_intlit;
         v->visit_expr_strlit = sem_visit_expr_strlit;
         v->visit_expr_identifier = sem_visit_expr_identifier;
+        v->visit_expr_funccall = sem_visit_expr_funccall;
         return v;
 }
 

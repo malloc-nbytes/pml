@@ -14,6 +14,7 @@ typedef enum {
         EXPR_TYPE_INTLIT,
         EXPR_TYPE_STRLIT,
         EXPR_TYPE_IDENTIFIER,
+        EXPR_TYPE_FUNCCALL,
 } Expr_Type;
 
 typedef struct Expr {
@@ -24,6 +25,13 @@ typedef struct Expr {
 Expr *expr_alloc(Expr_Type ty);
 
 DYN_ARRAY_TYPE(Expr *, Expr_Array);
+
+typedef struct {
+        Expr base;
+        Expr *callee;
+        Expr_Array exprs;
+} Expr_Funccall;
+Expr_Funccall *expr_funccall_alloc(Expr *callee, Expr **exprs, size_t len);
 
 typedef struct {
         Expr base;
@@ -97,6 +105,7 @@ typedef struct Visitor {
         void (*visit_expr_intlit)(Visitor *, Expr_Intlit *e);
         void (*visit_expr_strlit)(Visitor *, Expr_Strlit *e);
         void (*visit_expr_identifier)(Visitor *, Expr_Identifier *e);
+        void (*visit_expr_funccall)(Visitor *, Expr_Funccall *e);
 } Visitor;
 
 #endif // GRAMMAR_H

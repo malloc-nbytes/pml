@@ -108,8 +108,26 @@ static Expr *parse_primary_expr(Parsing_Context *ctx) {
                 if (!hd) { return left; }
                 switch (hd->ty) {
                 case TOKEN_TYPE_IDENTIFIER: {
-                        left = (Expr *)expr_identifier(hd->lx.s, hd->lx.l);
-                        lexer_discard(ctx->l); // identifier
+                        Token *id = hd;
+                        // Function Call
+                        if (hd->n && hd->n->ty == TOKEN_TYPE_LPAREN) {
+                                // Function call no parameters
+                                assert(0);
+                        } else if (hd->n && hd->n->ty == TOKEN_TYPE_IDENTIFIER) {
+                                // Function call with parameters
+                                lexer_discard(ctx->l); // identifier
+                                Expr_Array ar = dyn_array_empty(Expr_Array);
+                                Expr *e = NULL;
+                                while ((e = parse_expr(ctx)) != NULL) {
+                                        dyn_array_append(ar, e);
+                                }
+                                assert(0);
+                        }
+                        // Identifier
+                        else {
+                                left = (Expr *)expr_identifier(id->lx.s, id->lx.l);
+                                lexer_discard(ctx->l); // identifier
+                        }
                 } break;
                 case TOKEN_TYPE_LPAREN: {
                         (void)lexer_next(ctx->l); // (
@@ -232,10 +250,6 @@ static Expr *parse_expr(Parsing_Context *ctx) {
                 return (Expr *)parse_expr_let(ctx);
         }
         Expr *e = parse_bitwise_expr(ctx);
-        if (!e) {
-                err_wargs("could not parse expression at: %s",
-                          utils_tmp_str_wlen(hd->lx.s, hd->lx.l));
-        }
         return e;
 }
 

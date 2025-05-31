@@ -10,6 +10,12 @@
 // Accept Functions
 /////////////////////////
 
+void accept_expr_funccall(Expr *e, Visitor *v) {
+        if (v->visit_expr_funccall) {
+                v->visit_expr_funccall(v, (Expr_Funccall *)e);
+        }
+}
+
 void accept_expr_binary(Expr *e, Visitor *v) {
         if (v->visit_expr_binary) {
                 v->visit_expr_binary(v, (Expr_Binary *)e);
@@ -131,6 +137,11 @@ Expr *expr_alloc(Expr_Type ty) {
                 e->ty = EXPR_TYPE_IDENTIFIER;
                 e->accept = accept_expr_identifier;
         } break;
+        case EXPR_TYPE_FUNCCALL: {
+                e = (Expr *)malloc(sizeof(Expr_Funccall));
+                e->ty = EXPR_TYPE_FUNCCALL;
+                e->accept = accept_expr_funccall;
+        } break;
         default: {
                 err_wargs("unknown expr type: %d", (int)ty);
         } break;
@@ -200,5 +211,19 @@ Expr_Strlit *expr_strlit_alloc(char *s, size_t len) {
 Expr_Identifier *expr_identifier(char *id, size_t len) {
         Expr_Identifier *e = (Expr_Identifier *)expr_alloc(EXPR_TYPE_IDENTIFIER);
         e->id = strndup(id, len);
+        return e;
+}
+
+Expr_Funccall *expr_funccall_alloc(
+        Expr *callee,
+        Expr **exprs,
+        size_t len)
+{
+        Expr_Funccall *e = (Expr_Funccall *)expr_alloc(EXPR_TYPE_FUNCCALL);
+        e->callee = callee;
+        e->exprs = dyn_array_empty(Expr_Array);
+        for (size_t i = 0; i < len; ++i) {
+                dyn_array_append(e->exprs, exprs[i]);
+        }
         return e;
 }
