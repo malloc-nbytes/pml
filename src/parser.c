@@ -35,9 +35,9 @@ static Token *expectkw(Parsing_Context *ctx, const char *kw) {
 }
 
 static Expr_Letfn *parse_expr_letfn(Parsing_Context *ctx) {
-        LOG_WARGS(LOG_INFO, stdout, "Parsing `letfn` expression, scope: %d", ctx->global_scope);
         lexer_discard(ctx->l); // let
         Token *id = expect(ctx->l, TOKEN_TYPE_IDENTIFIER);
+        LOG_WARGS(LOG_INFO, stdout, "Parsing function: %s", utils_tmp_str_wlen(id->lx.s, id->lx.l));
 
         dyn_array(char *, params);
         dyn_array(size_t, param_names_len);
@@ -71,16 +71,18 @@ static Expr_Letfn *parse_expr_letfn(Parsing_Context *ctx) {
 }
 
 static Expr_Let *parse_expr_let(Parsing_Context *ctx) {
-        LOG_WARGS(LOG_INFO, stdout, "Parsing `let` expression, scope: %d", ctx->global_scope);
         lexer_discard(ctx->l); // let
         Token *id = expect(ctx->l, TOKEN_TYPE_IDENTIFIER);
+        LOG_WARGS(LOG_INFO, stdout, "Parsing let: %s, scope: %d", utils_tmp_str_wlen(id->lx.s, id->lx.l),
+                  ctx->global_scope);
         (void)expect(ctx->l, TOKEN_TYPE_EQUALS);
         Expr *e = parse_expr(ctx);
         Expr *in = NULL;
 
         if (ctx->global_scope > 0) {
+                LOG(LOG_INFO, stdout, "in...");
                 (void)expectkw(ctx, GL_KW_IN);
-                Expr *in = parse_expr(ctx);
+                in = parse_expr(ctx);
         }
 
         return expr_let_alloc(id->lx.s, id->lx.l, e, in);
@@ -108,43 +110,33 @@ static Expr *parse_primary_expr(Parsing_Context *ctx) {
                 if (!hd) { return left; }
                 switch (hd->ty) {
                 case TOKEN_TYPE_IDENTIFIER: {
+                        if (left && left->ty == EXPR_TYPE_IDENTIFIER) {
+                                goto done;
+                        }
+
                         Token *id = hd;
-                        // Function Call
-                        if (hd->n && hd->n->ty == TOKEN_TYPE_LPAREN) {
-                                // Function call no parameters
-                                assert(0);
-                        } else if (hd->n && hd->n->ty == TOKEN_TYPE_IDENTIFIER) {
-                                // Function call with parameters
-                                lexer_discard(ctx->l); // identifier
-                                Expr_Array ar = dyn_array_empty(Expr_Array);
-                                Expr *e = NULL;
-                                while ((e = parse_expr(ctx)) != NULL) {
-                                        dyn_array_append(ar, e);
-                                }
-                                assert(0);
-                        }
-                        // Identifier
-                        else {
-                                left = (Expr *)expr_identifier(id->lx.s, id->lx.l);
-                                lexer_discard(ctx->l); // identifier
-                        }
+                        left = (Expr *)expr_identifier(id->lx.s, id->lx.l);
+                        lexer_discard(ctx->l); // identifier
                 } break;
                 case TOKEN_TYPE_LPAREN: {
-                        (void)lexer_next(ctx->l); // (
-                        Expr_Array tuple = parse_comma_sep_exprs(ctx);
-                        (void)expect(ctx->l, TOKEN_TYPE_RPAREN);
-                        if (tuple.len > 1) {
-                                // Tuple
-                                //left = expr_tuple_alloc(tuple, tok);
-                                assert(0);
+                        lexer_discard(ctx->l); // (
+                        if (left) {
+                                Expr_Array ar = dyn_array_empty(Expr_Array);
+                                // Function call
+                                while (lexer_speek(ctx->l, 0)->ty != TOKEN_TYPE_RPAREN) {
+                                        dyn_array_append(ar, parse_expr(ctx));
+                                }
+                                lexer_discard(ctx->l); // )
+                                left = (Expr *)expr_funccall_alloc(left, ar.data, ar.len);
                         }
                         else {
                                 // Math
-                                left = tuple.data[0];
-                                dyn_array_free(tuple);
+                                assert(0);
                         }
                 } break;
                 case TOKEN_TYPE_INTLIT: {
+                        if (left) { goto done; }
+
                         Token *intlit = lexer_next(ctx->l);
                         assert(intlit->lx.l < 32);
                         char buf[32] = {0};
@@ -154,6 +146,13 @@ static Expr *parse_primary_expr(Parsing_Context *ctx) {
                 case TOKEN_TYPE_STRLIT: {
                         Token *strlit = lexer_next(ctx->l);
                         left = (Expr *)expr_strlit_alloc(strlit->lx.s, strlit->lx.l);
+                } break;
+                case TOKEN_TYPE_DOUBLE_SEMICOLON: {
+                        lexer_discard(ctx->l); // ;;
+                        goto done;
+                } break;
+                case TOKEN_TYPE_RPAREN: {
+                        goto done;
                 } break;
                 case TOKEN_TYPE_KEYWORD: {
                         // TODO: booleans
@@ -254,6 +253,8 @@ static Expr *parse_expr(Parsing_Context *ctx) {
 }
 
 Program parser_parse_program(Lexer *l) {
+        LOG(LOG_INFO, stdout, "*** Parsing");
+
         Program p = (Program) { .exprs = dyn_array_empty(Expr_Array) };
 
         Parsing_Context ctx = (Parsing_Context) {

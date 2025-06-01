@@ -35,6 +35,7 @@ static void init_ops(void) {
         static Token_Type double_equals       = {TOKEN_TYPE_DOUBLE_EQUALS};
         static Token_Type double_pipe         = {TOKEN_TYPE_DOUBLE_PIPE};
         static Token_Type double_ampersand    = {TOKEN_TYPE_DOUBLE_AMPERSAND};
+        static Token_Type double_semicolon    = {TOKEN_TYPE_DOUBLE_SEMICOLON};
 
         g_ops = smap_create(NULL, NULL);
         smap_insert(&g_ops, "(", &lparen);
@@ -60,6 +61,7 @@ static void init_ops(void) {
         smap_insert(&g_ops, "==", &double_equals);
         smap_insert(&g_ops, "||", &double_pipe);
         smap_insert(&g_ops, "&&", &double_ampersand);
+        smap_insert(&g_ops, ";;", &double_semicolon);
 }
 
 static Token_Type detop(const char *s, size_t *len) {

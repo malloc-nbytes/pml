@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 
 #include "grammar.h"
@@ -219,6 +220,7 @@ Expr_Funccall *expr_funccall_alloc(
         Expr **exprs,
         size_t len)
 {
+        assert(callee);
         Expr_Funccall *e = (Expr_Funccall *)expr_alloc(EXPR_TYPE_FUNCCALL);
         e->callee = callee;
         e->exprs = dyn_array_empty(Expr_Array);

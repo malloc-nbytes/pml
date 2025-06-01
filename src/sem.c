@@ -4,6 +4,7 @@
 
 #include "sem.h"
 #include "grammar.h"
+#include "log.h"
 #include "ds/smap.h"
 
 static Sem_Sym *sem_sym_alloc(char *id, RTT *rtt) {
@@ -28,17 +29,20 @@ Sem_Sym *sem_scope_lookup(const Sem_Scope *ss, const char *id) {
                         return (Sem_Sym *)smap_get(&ss->scope.data[i], id);
                 }
         }
-
         return NULL;
 }
 
 static void sem_visit_expr_identifier(Visitor *v, Expr_Identifier *e) {
         Sem_Scope *s = (Sem_Scope *)v->ctx;
         Sem_Sym *sym = sem_scope_lookup(s, e->id);
+
+        LOG_WARGS(LOG_INFO, stdout, "Identifier: %s, found: %d", e->id, sym != NULL);
+
         if (!sym) {
                 char buf[256] = {0};
                 sprintf(buf, "undefined identifier: %s", e->id);
                 pusherr(s, buf);
+                e->base.rtt = rtt_alloc(RTT_UNIT);
         } else {
                 e->base.rtt = sym->rtt;
         }
@@ -50,7 +54,6 @@ static void sem_visit_expr_strlit(Visitor *v, Expr_Strlit *e) {
 }
 
 static void sem_visit_expr_intlit(Visitor *v, Expr_Intlit *e) {
-        Sem_Scope *s = (Sem_Scope *)v->ctx;
         e->base.rtt = rtt_alloc(RTT_INT);
 }
 
@@ -58,27 +61,30 @@ static void sem_visit_expr_let(Visitor *v, Expr_Let *e) {
         Sem_Scope *s = (Sem_Scope *)v->ctx;
 
         e->e->accept(e->e, v);
+        e->base.rtt = e->e->rtt;
 
         Sem_Sym *sym = sem_sym_alloc(e->id, e->base.rtt);
         sem_add_sym_to_scope(s, sym);
 
-        if (e->in) { e->in->accept(e->in, v); }
+        LOG_WARGS(LOG_INFO, stdout, "let: %s, type: %d", e->id, (int)e->e->rtt->kind);
+
+        if (e->in) {
+                e->in->accept(e->in, v);
+        }
 }
 
 static void sem_visit_expr_letfn(Visitor *v, Expr_Letfn *e) {
         Sem_Scope *s = (Sem_Scope *)v->ctx;
 
-        // Push a new scope for the function's parameters
         dyn_array_append(s->scope, smap_create(NULL, NULL));
 
-        // Create RTT_Function type
-        RTT_Function *fn_type = (RTT_Function *)malloc(sizeof(RTT_Function));
-        fn_type->base.kind = RTT_FUNCTION;
+        RTT_Function *fn_type = (RTT_Function *)rtt_alloc(RTT_FUNCTION);
+        fn_type->orig_id = e->id;
         fn_type->ptys = dyn_array_empty(RTT_Ptr_Array);
 
-        // Add parameters to the new scope with RTT_UNIT as a placeholder type
         for (size_t i = 0; i < e->params.len; i++) {
-                RTT *param_type = rtt_alloc(RTT_UNIT); // Placeholder type
+                //RTT *param_type = rtt_alloc(RTT_UNIT); // Placeholder type
+                RTT *param_type = NULL;
                 dyn_array_append(fn_type->ptys, param_type);
                 Sem_Sym *param_sym = sem_sym_alloc(e->params.data[i], param_type);
                 sem_add_sym_to_scope(s, param_sym);
@@ -114,20 +120,77 @@ static void sem_visit_expr_unary(Visitor *v, Expr_Unary *e) {
 }
 
 static void sem_visit_expr_bin(Visitor *v, Expr_Binary *e) {
+        LOG(LOG_INFO, stdout, "Binary expression");
+
         Sem_Scope *s = (Sem_Scope *)v->ctx;
         e->l->accept(e->l, v);
         e->r->accept(e->r, v);
+
+        if (!e->l->rtt || !e->r->rtt) {
+                char buf[256] = {0};
+                sprintf(buf, "Binary expression has undefined type for %s operand",
+                        !e->l->rtt ? "left" : "right");
+                pusherr(s, buf);
+                e->base.rtt = rtt_alloc(RTT_UNIT); // Default type
+                return;
+        }
+
         if (!rttcompat(e->l->rtt, e->r->rtt)) {
                 char buf[256] = {0};
-                sprintf(buf, "type %d is not compatible with type %d",
-                        (int)e->l->rtt->kind, (int)e->r->rtt->kind);
+                sprintf(buf, "Type %d is not compatible with type %d for operator %s",
+                        (int)e->l->rtt->kind, (int)e->r->rtt->kind, e->op);
                 pusherr(s, buf);
+                e->base.rtt = rtt_alloc(RTT_UNIT); // Default type
+                return;
+        }
+
+        // Set the result type based on the operator
+        if (strcmp(e->op, "+") == 0 && e->l->rtt->kind == RTT_INT && e->r->rtt->kind == RTT_INT) {
+                e->base.rtt = rtt_alloc(RTT_INT);
+        } else {
+                // Handle other operators or type combinations
+                char buf[256] = {0};
+                sprintf(buf, "Unsupported operator %s for types %d and %d",
+                        e->op, (int)e->l->rtt->kind, (int)e->r->rtt->kind);
+                pusherr(s, buf);
+                e->base.rtt = rtt_alloc(RTT_UNIT); // Default type
         }
 }
 
 static void sem_visit_expr_funccall(Visitor *v, Expr_Funccall *e) {
         Sem_Scope *s = (Sem_Scope *)v->ctx;
-        assert(0);
+        e->callee->accept(e->callee, v);
+
+        if (!e->callee->rtt) {
+                pusherr(s, "Function call to undefined identifier");
+                return;
+        }
+
+        if (e->callee->rtt->kind != RTT_FUNCTION) {
+                char buf[256] = {0};
+                sprintf(buf, "Callee is not a function, found type: %d", (int)e->callee->rtt->kind);
+                pusherr(s, buf);
+                return;
+        }
+
+        RTT_Function *fn_type = (RTT_Function *)e->callee->rtt;
+
+        if (e->exprs.len != fn_type->ptys.len) {
+                char buf[256] = {0};
+                sprintf(buf, "Number of function parameters (%zu) does not match (%zu)",
+                        e->exprs.len, fn_type->ptys.len);
+                pusherr(s, buf);
+                e->base.rtt = fn_type->rty;
+        }
+
+        // Process arguments
+        for (size_t i = 0; i < e->exprs.len; i++) {
+                e->exprs.data[i]->accept(e->exprs.data[i], v);
+                fn_type->ptys.data[i] = e->exprs.data[i]->rtt;
+        }
+
+        // Set the return type of the function call
+        e->base.rtt = fn_type->rty;
 }
 
 static Visitor *sem_create_visitor(Sem_Scope *s) {
@@ -145,6 +208,8 @@ static Visitor *sem_create_visitor(Sem_Scope *s) {
 }
 
 Sem_Scope semantic_analyze(Program *p) {
+        LOG(LOG_INFO, stdout, "*** Semantic Analysis");
+
         Sem_Scope s = (Sem_Scope) {
                 .scope = dyn_array_empty(SMap_Array),
                 .errs = dyn_array_empty(Str_Array),

@@ -55,6 +55,7 @@ const char *token_type_to_cstr(Token_Type ty) {
         case TOKEN_TYPE_DOUBLE_AMPERSAND: return "TOKEN_TYPE_DOUBLE_AMPERSAND";
         case TOKEN_TYPE_BANG_EQUALS: return "TOKEN_TYPE_BANG_EQUALS";
         case TOKEN_TYPE_BANG: return "TOKEN_TYPE_BANG";
+        case TOKEN_TYPE_DOUBLE_SEMICOLON: return "TOKEN_TYPE_DOUBLE_SEMICOLON";
         default: assert(0 && "unknown token type");
         }
 }

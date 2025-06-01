@@ -1,5 +1,9 @@
-let sum a b = a+b
+let sum a b = 1
+
 let main () =
     let x = 1 in
     let y = 2 in
-    sum x y
+    let z = 3+2+1 in
+    let f = sum in
+    f (x 1+2+3)
+

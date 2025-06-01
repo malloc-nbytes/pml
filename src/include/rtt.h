@@ -28,6 +28,7 @@ DYN_ARRAY_TYPE(RTT *, RTT_Ptr_Array);
 
 typedef struct {
         RTT base;
+        const char *orig_id;
         RTT_Ptr_Array ptys;
         RTT *rty;
 } RTT_Function;
