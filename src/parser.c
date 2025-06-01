@@ -83,6 +83,8 @@ static Expr_Let *parse_expr_let(Parsing_Context *ctx) {
                 LOG(LOG_INFO, stdout, "in...");
                 (void)expectkw(ctx, GL_KW_IN);
                 in = parse_expr(ctx);
+        } else if (lexer_speek(ctx->l, 0)->ty == TOKEN_TYPE_KEYWORD && !strncmp(ctx->l->hd->lx.s, GL_KW_IN, ctx->l->hd->lx.l)) {
+                err("invalid 'in' in global scope");
         }
 
         return expr_let_alloc(id->lx.s, id->lx.l, e, in);
@@ -110,7 +112,7 @@ static Expr *parse_primary_expr(Parsing_Context *ctx) {
                 if (!hd) { return left; }
                 switch (hd->ty) {
                 case TOKEN_TYPE_IDENTIFIER: {
-                        if (left && left->ty == EXPR_TYPE_IDENTIFIER) {
+                        if (left) {
                                 goto done;
                         }
 

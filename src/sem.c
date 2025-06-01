@@ -15,6 +15,7 @@ static Sem_Sym *sem_sym_alloc(char *id, RTT *rtt) {
 }
 
 void sem_add_sym_to_scope(Sem_Scope *ss, Sem_Sym *sym) {
+        LOG_WARGS(LOG_INFO, stdout, "adding %s to scope", sym->id);
         smap_insert(&ss->scope.data[ss->scope.len-1], sym->id, (void *)sym);
 }
 
@@ -181,6 +182,7 @@ static void sem_visit_expr_funccall(Visitor *v, Expr_Funccall *e) {
                         e->exprs.len, fn_type->ptys.len);
                 pusherr(s, buf);
                 e->base.rtt = fn_type->rty;
+                return;
         }
 
         // Process arguments

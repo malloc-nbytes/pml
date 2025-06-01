@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "ds/smap.h"
 #include "sem.h"
+#include "inter.h"
 #define CIO_IMPL
 #include "cio.h"
 
@@ -25,6 +26,8 @@ int main(void) {
                 }
                 exit(1);
         }
+
+        inter_interpret(&program);
 
         return 0;
 }

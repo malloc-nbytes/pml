@@ -12,8 +12,6 @@ typedef struct {
         RTT *rtt;
 } Sem_Sym;
 
-DYN_ARRAY_TYPE(SMap, SMap_Array);
-
 typedef struct {
         SMap_Array scope;
         Str_Array errs;
