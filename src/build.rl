@@ -10,5 +10,5 @@ try { debug = ("debug", "d", "deb", "g", "ggdb").contains(argv()[1]); }
 if debug {
     $"gcc -DDEBUG -O0 -g -o main *.c -Iinclude/";
 } else {
-    $"gcc -DDEBUG -o main *.c -Iinclude/";
+    $"gcc -o main *.c -Iinclude/";
 }

@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 //////////////////////////////////////////////////
 // Creates a new dynamic array type globally.
